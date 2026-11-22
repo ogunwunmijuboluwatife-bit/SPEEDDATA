@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>DataPilot: sign in or create an account</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0a1f4e;--blue:#1f5fe0;--sky:#eaf1fd;--paper:#f3f6fc;--line:#d5e0f0;--mute:#5d6f89;--amber:#f0a500;--bad:#c23a2b;--ok:#17855a;color-scheme:light}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Figtree,"Segoe UI",Roboto,Arial,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);min-height:100svh}
+/* left: the plot */
+.plot{position:relative;overflow:hidden;background:#fff;border-right:1px solid var(--line)}
+#cv{position:absolute;inset:0;width:100%;height:100%}
+.brand{position:absolute;left:36px;top:30px;font:700 19px "Bricolage Grotesque",Figtree,sans-serif;display:flex;gap:8px;align-items:center;letter-spacing:.01em}
+.brand i{font-style:normal;color:var(--blue)}
+.copy{position:absolute;left:36px;right:36px;bottom:40px;max-width:30rem;transition:opacity .25s,transform .25s}
+.copy.swap{opacity:0;transform:translateY(8px)}
+.copy h1{margin:0 0 10px;font:700 clamp(30px,3.6vw,46px)/1.05 "Bricolage Grotesque",Figtree,sans-serif;letter-spacing:-.02em}
+.copy p{margin:0;color:var(--mute);max-width:26rem}
+/* right: the card */
+.side{position:relative;display:grid;place-items:center;padding:32px 20px;background:radial-gradient(60% 50% at 80% 10%,#cfe0fb 0,transparent 70%),radial-gradient(50% 40% at 10% 100%,#dbe8fd 0,transparent 70%),var(--paper)}
+.card{position:relative;width:100%;max-width:420px}
+.glass{position:absolute;inset:0;border-radius:22px;background:rgba(255,255,255,.7);border:1px solid #fff;box-shadow:0 1px 0 #fff inset,0 24px 60px -24px rgba(10,31,78,.35);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.flip{position:relative;perspective:1400px;transition:height .55s cubic-bezier(.3,.7,.2,1)}
+.rot{position:relative;height:100%;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.3,.7,.2,1)}
+.up .rot{transform:rotateY(180deg)}
+.face{position:absolute;inset:0 0 auto 0;padding:30px 30px 26px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.b{transform:rotateY(180deg)}
+.face h2{margin:0 0 4px;font:700 28px/1.1 "Bricolage Grotesque",Figtree,sans-serif;letter-spacing:-.015em}
+.face .sub{margin:0 0 18px;color:var(--mute)}
+.f{display:block;margin:0 0 12px}
+.f>span{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.in{position:relative}
+.in input{width:100%;height:44px;padding:0 44px 0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+.in input:hover{border-color:#b9cdf0}
+.in input:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px #1f5fe033}
+.in input[aria-invalid=true]{border-color:var(--bad)}
+.eye{position:absolute;right:4px;top:4px;width:36px;height:36px;border:0;background:none;border-radius:8px;color:var(--mute);cursor:pointer;display:grid;place-items:center}
+.eye:hover{background:var(--sky);color:var(--ink)}
+.tick{position:absolute;right:12px;top:12px;width:20px;height:20px;color:var(--ok);opacity:0;transform:scale(.6);transition:.2s}
+.tick.on{opacity:1;transform:none}
+.meter{display:flex;gap:4px;margin-top:6px;align-items:center}
+.meter b{flex:0 0 18%;height:5px;border-radius:3px;background:var(--line);transition:background .2s}
+.meter small{margin-left:6px;color:var(--mute);font-size:12px;min-width:5.5em}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 0 16px;font-size:13.5px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--ink);cursor:pointer}
+.chk input{margin:3px 0 0;accent-color:var(--blue);width:16px;height:16px}
+a{color:var(--blue);text-decoration:none;font-weight:600}a:hover{text-decoration:underline}
+.go{width:100%;height:46px;border:0;border-radius:11px;background:var(--blue);color:#fff;font:600 15px Figtree,sans-serif;cursor:pointer;box-shadow:0 8px 18px -8px #1f5fe0;transition:transform .12s,background .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.go:hover{background:#1850c2}.go:active{transform:translateY(1px)}
+.go[disabled]{opacity:.7;cursor:wait}
+.spin{width:16px;height:16px;border:2px solid #fff6;border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:none}.go[disabled] .spin{display:block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.or{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--mute);font-size:13px}.or:before,.or:after{content:"";height:1px;background:var(--line);flex:1}
+.g{width:100%;height:44px;border:1px solid var(--line);border-radius:11px;background:#fff;font:600 14.5px Figtree,sans-serif;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+.g:hover{background:var(--sky)}
+.swap{margin:18px 0 0;text-align:center;color:var(--mute);font-size:14px}
+.swap button{border:0;background:none;color:var(--blue);font:600 14px Figtree,sans-serif;cursor:pointer;padding:2px}
+.swap button:hover{text-decoration:underline}
+.err{min-height:20px;margin:0 0 8px;color:var(--bad);font-size:13.5px}
+.err.good{color:var(--ok)}
+.hide{display:none!important}
+.rs{position:absolute;inset:0;z-index:5;background:#fff;border-radius:22px;padding:30px;overflow:auto}
+.lnk{display:block;margin-top:6px;border:0;background:none;color:var(--blue);font:600 13.5px Figtree,sans-serif;cursor:pointer;padding:0}.lnk:hover{text-decoration:underline}
+button:focus-visible,a:focus-visible,.chk input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media(max-width:880px){
+ .stage{display:block;position:relative}
+ .plot{position:fixed;inset:0;border:0;opacity:.55;z-index:0}
+ .copy{display:none}.brand{left:20px;top:18px}
+ .side{position:relative;z-index:1;min-height:100svh;padding:64px 14px 24px;background:transparent}
+}
+@media(prefers-reduced-motion:reduce){.rot,.flip,.copy,.go{transition:none}}
+</style></head>
+<body>
+<div class="stage">
+ <section class="plot" aria-hidden="true">
+  <canvas id="cv"></canvas>
+  <div class="brand"><i>&#9700;</i>DataPilot</div>
+  <div class="copy" id="copy"><h1 id="ch">Pick up where your analysis stopped.</h1><p id="cp">Your datasets, test results and Chapter Four draft are saved to your account.</p></div>
+ </section>
+
+ <main class="side">
+  <div class="card">
+   <div class="glass"></div>
+   <div class="flip" id="flip"><div class="rot" id="rot">
+
+    <form class="face f1" id="fin" novalidate>
+     <h2>Sign in</h2><p class="sub">Welcome back. Your work is where you left it.</p>
+     <label class="f"><span>Email</span><div class="in"><input name="email" type="email" autocomplete="email" placeholder="you@school.edu.ng" required></div></label>
+     <label class="f"><span>Password</span><div class="in"><input name="pw" type="password" autocomplete="current-password" placeholder="Your password" required><button type="button" class="eye" aria-label="Show password" data-eye><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></label>
+     <div class="row"><label class="chk"><input type="checkbox" name="rem" checked><span>Keep me signed in</span></label><a href="#" id="forgot">Forgot password?</a></div>
+     <p class="err" role="alert" aria-live="polite"></p>
+     <button class="go" type="submit"><span class="spin"></span><span class="t">Sign in</span></button>
+     <div class="gwrap hide"><div class="or">or</div><button type="button" class="g" data-g><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 010-9.4l-7.9-6.1a24 24 0 000 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</button></div>
+     <p class="swap">New to DataPilot? <button type="button" data-go="up">Create an account</button></p>
+    </form>
+
+    <form class="face b f2" id="fup" novalidate inert>
+     <h2>Create your account</h2><p class="sub">Takes a minute. No payment needed.</p>
+     <label class="f"><span>Full name</span><div class="in"><input name="nm" type="text" autocomplete="name" placeholder="As it appears on your project" required></div></label>
+     <label class="f"><span>Email</span><div class="in"><input name="email" type="email" autocomplete="email" placeholder="you@school.edu.ng" required></div></label>
+     <label class="f"><span>Password</span><div class="in"><input name="pw" type="password" autocomplete="new-password" placeholder="At least 8 characters" required><button type="button" class="eye" aria-label="Show password" data-eye><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <div class="meter" aria-live="polite"><b></b><b></b><b></b><b></b><small id="ml">Too short</small></div></label>
+     <label class="f"><span>Confirm password</span><div class="in"><input name="pw2" type="password" autocomplete="new-password" placeholder="Type it again" required><svg class="tick" id="tk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div></label>
+     <label class="chk" style="margin:4px 0 12px"><input type="checkbox" name="tc"><span>I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></span></label>
+     <p class="err" role="alert" aria-live="polite"></p>
+     <button class="go" type="submit"><span class="spin"></span><span class="t">Create account</span></button>
+     <div class="gwrap hide"><div class="or">or</div><button type="button" class="g" data-g><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 010-9.4l-7.9-6.1a24 24 0 000 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Sign up with Google</button></div>
+     <p class="swap">Already have an account? <button type="button" data-go="in">Sign in</button></p>
+    </form>
+
+   </div></div>
+   <form class="rs hide" id="frs" novalidate>
+    <h2>Set a new password</h2><p class="sub">Choose a password you haven’t used here before.</p>
+    <label class="f"><span>New password</span><div class="in"><input name="a" type="password" autocomplete="new-password" placeholder="At least 8 characters" required></div></label>
+    <label class="f"><span>Confirm new password</span><div class="in"><input name="b" type="password" autocomplete="new-password" placeholder="Type it again" required></div></label>
+    <p class="err" role="alert" aria-live="polite"></p>
+    <button class="go" type="submit"><span class="spin"></span><span class="t">Save password</span></button>
+   </form>
+  </div>
+ </main>
+</div>
+
+<script src="config.js" onerror="void 0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ============ AUTH ADAPTER: the only part that talks to your backend ============
+   Looks for Supabase settings in config.js. If it cannot find them, the page runs
+   in demo mode (everything works visually, nothing is saved).
+   Change APP_URL to the page that should open after sign-in. */
+const APP_URL="index.html", GOOGLE=false;
+const CFG=window.DP_CONFIG||window.CONFIG||window.config||{};
+const SB_URL=CFG.SUPABASE_URL||CFG.supabaseUrl||window.SUPABASE_URL, SB_KEY=CFG.SUPABASE_ANON_KEY||CFG.supabaseAnonKey||window.SUPABASE_ANON_KEY;
+let sb=null;try{if(window.supabase&&SB_URL&&SB_KEY)sb=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){}
+const nice=m=>/not confirmed/i.test(m)?"Confirm your email first. Open the link we sent you (check spam too), then sign in.":/invalid login/i.test(m)?"That email and password don’t match. Check both and try again.":/already registered|already been registered/i.test(m)?"An account with this email already exists. Sign in instead.":/rate|too many/i.test(m)?"Too many tries. Wait a minute and try again.":/network|fetch/i.test(m)?"Can’t reach the server. Check your connection.":m;
+const AUTH={
+ async signIn(email,pw,rem){if(!sb)return demo("Signed in (demo mode)");const{error}=await sb.auth.signInWithPassword({email,password:pw});if(error){const e=Error(nice(error.message));e.unconfirmed=/not confirmed/i.test(error.message);throw e}location.href=APP_URL},
+ async signUp(name,email,pw){if(!sb)return demo("Account created (demo mode)");const{data,error}=await sb.auth.signUp({email,password:pw,options:{data:{full_name:name,name},emailRedirectTo:new URL(APP_URL,location.href).href}});if(error)throw Error(nice(error.message));if(data.user&&data.user.identities&&data.user.identities.length===0)throw Error("An account with this email already exists. Sign in instead.");if(data.session)location.href=APP_URL;else return"Almost done. We sent a confirmation link to "+email+". Open it to activate your account, then sign in."},
+ async resend(email){if(!sb)return demo("Confirmation email sent (demo mode)");const{error}=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:new URL(APP_URL,location.href).href}});if(error)throw Error(nice(error.message));return"Confirmation email sent to "+email+". Check your inbox and spam."},
+ async newPassword(pw){const{error}=await sb.auth.updateUser({password:pw});if(error)throw Error(nice(error.message));location.href=APP_URL},
+ async reset(email){if(!sb)return demo("Reset link sent (demo mode)");const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:new URL("auth.html",location.href).href});if(error)throw Error(nice(error.message));return"If that email has an account, a reset link is on its way."},
+ async google(){if(!sb)return demo("Google sign-in (demo mode)");const{error}=await sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:new URL(APP_URL,location.href).href}});if(error)throw Error(nice(error.message))}
+};
+function demo(m){return new Promise(r=>setTimeout(()=>r(m),700))}
+
+/* ============ UI ============ */
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const flip=$("#flip"),rot=$("#rot"),fin=$("#fin"),fup=$("#fup"),RM=matchMedia("(prefers-reduced-motion:reduce)").matches;
+let mode="in";
+if(GOOGLE)$$(".gwrap").forEach(e=>e.classList.remove("hide"));
+function fit(){const f=mode=="in"?fin:fup;flip.style.height=f.offsetHeight+"px"}
+const COPY={in:["Pick up where your analysis stopped.","Your datasets, test results and Chapter Four draft are saved to your account."],up:["From raw data to Chapter Four.","Upload your data, run the right test, and get results written up in the standard order."]};
+function go(m,focus){if(m==mode)return;mode=m;const up=m=="up";flip.classList.toggle("up",up);
+ fin.inert=up;fup.inert=!up;fit();history.replaceState(null,"",up?"#signup":"#signin");document.title=up?"DataPilot: create an account":"DataPilot: sign in";
+ const c=$("#copy");c.classList.add("swap");setTimeout(()=>{$("#ch").textContent=COPY[m][0];$("#cp").textContent=COPY[m][1];c.classList.remove("swap")},RM?0:220);
+ plotTo(m);if(focus!==false)setTimeout(()=>{const i=$("input",up?fup:fin);i&&i.focus({preventScroll:true})},RM?0:420)}
+$$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+flip.classList.add("up");flip.classList.remove("up");
+new ResizeObserver(fit).observe(fin);new ResizeObserver(fit).observe(fup);addEventListener("resize",fit);
+
+/* show / hide password */
+$$("[data-eye]").forEach(b=>b.onclick=()=>{const i=b.previousElementSibling,s=i.type=="password";i.type=s?"text":"password";b.setAttribute("aria-label",s?"Hide password":"Show password")});
+
+/* strength + match */
+const pw=$("input[name=pw]",fup),pw2=$("input[name=pw2]",fup),bars=$$(".meter b"),ml=$("#ml"),tk=$("#tk");
+const COL=["#c23a2b","#e07b20","#d9a400","#17855a"],LAB=["Too weak","Weak","Fair","Strong"];
+function score(v){if(v.length<8)return v?0:-1;let s=0;if(/[a-z]/.test(v)&&/[A-Z]/.test(v))s++;if(/\d/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;if(v.length>=12)s++;return Math.min(3,Math.max(0,s-(s>3?0:0)))}
+function meter(){const v=pw.value,s=score(v);bars.forEach((b,i)=>b.style.background=s>=0&&i<=s?COL[s]:"");ml.textContent=v?(v.length<8?"Too short":LAB[s]):"At least 8";ml.style.color=s>=0&&v?COL[s]:"";match()}
+function match(){const ok=pw2.value&&pw2.value==pw.value;tk.classList.toggle("on",!!ok);pw2.removeAttribute("aria-invalid")}
+pw.addEventListener("input",meter);pw2.addEventListener("input",match);
+
+/* forms */
+const say=(f,m,good)=>{const e=$(".err",f);e.textContent=m||"";e.classList.toggle("good",!!good)};
+const busy=(f,on)=>{const b=$(".go",f);b.disabled=on;$(".t",b).style.opacity=on?.6:1};
+const bad=(i,f,m)=>{i.setAttribute("aria-invalid","true");say(f,m);i.focus()};
+const okMail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+$$("input").forEach(i=>i.addEventListener("input",()=>{i.removeAttribute("aria-invalid");const f=i.closest("form");if(f&&!$(".err",f).classList.contains("good"))say(f,"")}));
+fin.addEventListener("submit",async e=>{e.preventDefault();const f=fin,em=f.email,p=f.pw;
+ if(!okMail(em.value.trim()))return bad(em,f,"Enter a valid email address, like you@school.edu.ng.");
+ if(!p.value)return bad(p,f,"Enter your password.");
+ busy(f,1);say(f,"");try{const m=await AUTH.signIn(em.value.trim(),p.value,f.rem.checked);if(m)say(f,m,1)}catch(x){say(f,x.message);if(x.unconfirmed){const b=document.createElement("button");b.type="button";b.className="lnk";b.textContent="Resend confirmation email";b.onclick=async()=>{b.remove();try{say(f,await AUTH.resend(em.value.trim()),1)}catch(y){say(f,y.message)}};$(".err",f).appendChild(b)}}busy(f,0)});
+fup.addEventListener("submit",async e=>{e.preventDefault();const f=fup,n=f.nm,em=f.email,p=f.pw,p2=f.pw2;
+ if(n.value.trim().length<2)return bad(n,f,"Enter your full name.");
+ if(!okMail(em.value.trim()))return bad(em,f,"Enter a valid email address, like you@school.edu.ng.");
+ if(p.value.length<8)return bad(p,f,"Use at least 8 characters for your password.");
+ if(p.value!=p2.value)return bad(p2,f,"The two passwords don’t match.");
+ if(!f.tc.checked){say(f,"Tick the box to accept the Terms and Privacy Policy.");return f.tc.focus()}
+ busy(f,1);say(f,"");try{const m=await AUTH.signUp(n.value.trim(),em.value.trim(),p.value);if(m)say(f,m,1)}catch(x){say(f,x.message)}busy(f,0)});
+$("#forgot").onclick=async e=>{e.preventDefault();const em=fin.email;if(!okMail(em.value.trim()))return bad(em,fin,"Type your email above, then press Forgot password.");
+ busy(fin,1);try{say(fin,await AUTH.reset(em.value.trim()),1)}catch(x){say(fin,x.message)}busy(fin,0)};
+$$("[data-g]").forEach(b=>b.onclick=async()=>{const f=b.closest("form");try{const m=await AUTH.google();if(m)say(f,m,1)}catch(x){say(f,x.message)}});
+
+/* password reset (arrives from the emailed link) and already-signed-in redirect */
+const frs=$("#frs");
+function showReset(){frs.classList.remove("hide");fin.inert=true;fup.inert=true;setTimeout(()=>$("input",frs).focus(),50)}
+frs.addEventListener("submit",async e=>{e.preventDefault();const a=frs.a,b=frs.b;
+ if(a.value.length<8)return bad(a,frs,"Use at least 8 characters for your password.");
+ if(a.value!=b.value)return bad(b,frs,"The two passwords don’t match.");
+ busy(frs,1);try{await AUTH.newPassword(a.value);say(frs,"Password updated. Taking you in…",1)}catch(x){say(frs,x.message)}busy(frs,0)});
+if(sb){const rec=/type=recovery/.test(location.hash);sb.auth.onAuthStateChange(ev=>{if(ev==="PASSWORD_RECOVERY")showReset()});
+ if(rec)setTimeout(showReset,0);else sb.auth.getSession().then(({data})=>{if(data.session)location.replace(APP_URL)})}
+
+/* ============ THE PLOT: a regression that refits every time you switch ============ */
+const cv=$("#cv"),cx=cv.getContext("2d"),N=44,FONT=getComputedStyle(document.body).fontFamily;
+let W=0,H=0,pts=[],t0=0,raf=0;
+function size(){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0);draw(1)}
+const rng=s=>()=>(s=(s*16807)%2147483647)/2147483647;
+function make(seed,slope,noise){const r=rng(seed);return Array.from({length:N},()=>{const x=.06+.88*r(),y=.5+slope*(x-.5)+(r()-.5)*noise*2;return{x,y:Math.min(.95,Math.max(.05,y))}})}
+const SETS={in:()=>make(7,.62,.13),up:()=>make(31,.78,.2)};
+function plotTo(m){const to=SETS[m](),r=rng(m=="in"?3:9);
+ pts=to.map((p,i)=>({fx:pts[i]?pts[i].cx:r(),fy:pts[i]?pts[i].cy:r(),tx:p.x,ty:p.y,cx:0,cy:0,d:i*16}));
+ // start from a scattered cloud so the line visibly “finds” the trend
+ pts.forEach(p=>{p.fy=.1+.8*r();p.cx=p.fx;p.cy=p.fy});
+ t0=performance.now();cancelAnimationFrame(raf);if(RM){draw(1);return}raf=requestAnimationFrame(tick)}
+const ease=t=>1-Math.pow(1-t,3);
+function tick(now){const T=now-t0;let done=true;
+ pts.forEach(p=>{const u=Math.min(1,Math.max(0,(T-p.d)/950));if(u<1)done=false;const e=ease(u);p.cx=p.fx+(p.tx-p.fx)*e;p.cy=p.fy+(p.ty-p.fy)*e});
+ draw();if(!done)raf=requestAnimationFrame(tick)}
+function draw(final){if(!W)return;cx.clearRect(0,0,W,H);
+ const L=44,R=36,Tp=96,B=Math.max(210,H*.34);const w=W-L-R,h=H-Tp-B;if(w<80||h<80)return;
+ const X=x=>L+x*w,Y=y=>Tp+(1-y)*h;
+ if(final&&pts.length)pts.forEach(p=>{p.cx=p.tx;p.cy=p.ty});
+ // graph paper
+ cx.lineWidth=1;for(let i=0;i<=10;i++){cx.strokeStyle=i%5?"#e6edf8":"#d5e0f0";cx.beginPath();cx.moveTo(X(i/10),Tp);cx.lineTo(X(i/10),Tp+h);cx.stroke();cx.beginPath();cx.moveTo(L,Y(i/10));cx.lineTo(L+w,Y(i/10));cx.stroke()}
+ cx.strokeStyle="#0a1f4e";cx.lineWidth=1.5;cx.beginPath();cx.moveTo(L,Tp);cx.lineTo(L,Tp+h);cx.lineTo(L+w,Tp+h);cx.stroke();
+ if(!pts.length)return;
+ // OLS on the points as they are right now
+ let mx=0,my=0;pts.forEach(p=>{mx+=p.cx;my+=p.cy});mx/=N;my/=N;let sxy=0,sxx=0,syy=0;pts.forEach(p=>{sxy+=(p.cx-mx)*(p.cy-my);sxx+=(p.cx-mx)**2;syy+=(p.cy-my)**2});
+ const b=sxy/sxx,a=my-b*mx,r=sxy/Math.sqrt(sxx*syy);
+ const fy=x=>Math.min(1,Math.max(0,a+b*x));
+ // residuals
+ cx.strokeStyle="#9db9ee";cx.lineWidth=1;pts.forEach(p=>{cx.beginPath();cx.moveTo(X(p.cx),Y(p.cy));cx.lineTo(X(p.cx),Y(a+b*p.cx));cx.stroke()});
+ // fitted line
+ cx.strokeStyle="#f0a500";cx.lineWidth=3;cx.lineCap="round";cx.beginPath();cx.moveTo(X(.03),Y(fy(.03)));cx.lineTo(X(.97),Y(fy(.97)));cx.stroke();
+ // points
+ pts.forEach(p=>{cx.fillStyle="#1f5fe0";cx.beginPath();cx.arc(X(p.cx),Y(p.cy),4.6,0,7);cx.fill();cx.strokeStyle="#fff";cx.lineWidth=1.5;cx.stroke()});
+ // live statistic
+ cx.fillStyle="#0a1f4e";cx.font="600 15px "+FONT;cx.textAlign="left";cx.fillText("r = "+(isFinite(r)?Math.abs(r).toFixed(2).replace(/^0/,""):".00"),L+12,Tp+24);
+ cx.fillStyle="#5d6f89";cx.font="400 12.5px "+FONT;cx.fillText("n = "+N,L+12,Tp+43)}
+addEventListener("resize",size);
+
+/* start */
+mode="in";plotTo("in");size();
+fit();document.fonts&&document.fonts.ready.then(()=>{fit();draw(1)});
+if(location.hash=="#signup"){mode="in";go("up",false)}
+</script>
+</body></html>
